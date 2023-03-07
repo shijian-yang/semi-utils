@@ -25,7 +25,13 @@ def print_current_setting():
     print(s_line)
     print(' 【1】: 布局：{}'.format(config['layout']['type']))
     print(' 【2】: Logo：{}'.format(config['logo']['enable']))
-    print(' 【3】: 左上文字：{}'.format(id_to_name.setdefault(config['layout']['elements']['left_top']['name']), '值错误'))
+    if len(config['layout']['elements']['left_top']['name']) == 2:
+        print(' 【3】: 左上文字：{}+{}'.format(id_to_name.setdefault(config['layout']['elements']['left_top']['name'][0]),
+                                            id_to_name.setdefault(config['layout']['elements']['left_top']['name'][1]),
+                                            '值错误'))
+    else:
+        print(' 【3】: 左上文字：{}+{}'.format(id_to_name.setdefault(config['layout']['elements']['left_top']['name']),
+                                            '值错误'))
     print(
         ' 【4】: 左下文字：{}'.format(id_to_name.setdefault(config['layout']['elements']['left_bottom']['name']),
                                    '值错误'))

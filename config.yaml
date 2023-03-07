@@ -8,14 +8,16 @@ layout:
   elements:
     left_bottom:
       is_bold: false
-      name: Model
+      name: Date
     left_top:
       is_bold: true
-      name: LensModel
+      name:
+      - Model
+      - Make
     right_bottom:
-      is_bold: false
+      is_bold: true
       name: Custom
-      value: "\u81EA\u5B9A\u4E49\u5B57\u6BB5"
+      value: Shot by Jimeri
     right_top:
       is_bold: true
       name: Param

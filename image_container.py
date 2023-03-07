@@ -8,6 +8,7 @@ from utils import get_exif
 
 printable = set(string.printable)
 
+
 class ImageContainer(object):
     def __init__(self, path):
         self.img = Image.open(path)
@@ -56,21 +57,25 @@ class ImageContainer(object):
     def get_attribute_str(self, element):
         if element is None or element.name == '':
             return ''
-        if element.name == 'Model':
-            return self.model
-        elif element.name == 'Param':
-            return self.get_param_str()
-        elif element.name == 'Make':
-            return self.make
-        elif element.name == 'Date':
-            return self._parse_datetime()
-        elif element.name == 'LensModel':
-            return self.lens_model
-        elif element.name == 'Custom':
-            self.custom = element.value
-            return self.custom
+        # default make+model
+        if len(element.name) == 2:
+            return self.make + '  ' + self.model
         else:
-            return ''
+            if element.name == 'Model':
+                return self.model
+            elif element.name == 'Param':
+                return self.get_param_str()
+            elif element.name == 'Make':
+                return self.make
+            elif element.name == 'Date':
+                return self._parse_datetime()
+            elif element.name == 'LensModel':
+                return self.lens_model
+            elif element.name == 'Custom':
+                self.custom = element.value
+                return self.custom
+            else:
+                return ''
 
     def get_param_str(self):
         return '  '.join([str(self.focal_length) + 'mm', 'F' + "{:2.1f}".format(self.f_number), self.exposure_time,
