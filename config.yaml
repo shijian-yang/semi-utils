@@ -8,14 +8,16 @@ layout:
   elements:
     left_bottom:
       is_bold: false
-      name: Model
+      name: Date
     left_top:
       is_bold: true
-      name: LensModel
+      name:
+      - Make
+      - Model
     right_bottom:
       is_bold: false
-      name: Date
-      value: Photo by NONE
+      name: Custom
+      value: Photo by Jimeri
     right_top:
       is_bold: true
       name: Param
@@ -58,4 +60,4 @@ logo:
       path: ./logos/sony.png
 param:
   focal_length:
-    use_equivalent_focal_length: false
+    use_equivalent_focal_length: true

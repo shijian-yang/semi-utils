@@ -72,21 +72,25 @@ class ImageContainer(object):
     def get_attribute_str(self, element):
         if element is None or element.name == '':
             return ''
-        if element.name == 'Model':
-            return self.model
-        elif element.name == 'Param':
-            return self.get_param_str()
-        elif element.name == 'Make':
-            return self.make
-        elif element.name == 'Date':
-            return self._parse_datetime()
-        elif element.name == 'LensModel':
-            return self.lens_model
-        elif element.name == 'Custom':
-            self.custom = element.value
-            return self.custom
+        # default make+model
+        if len(element.name) == 2:
+            return self.make + '  ' + self.model
         else:
-            return ''
+            if element.name == 'Model':
+                return self.model
+            elif element.name == 'Param':
+                return self.get_param_str()
+            elif element.name == 'Make':
+                return self.make
+            elif element.name == 'Date':
+                return self._parse_datetime()
+            elif element.name == 'LensModel':
+                return self.lens_model
+            elif element.name == 'Custom':
+                self.custom = element.value
+                return self.custom
+            else:
+                return ''
 
     def get_param_str(self):
         focal_length = self.focal_length_in_35mm_film if self.use_equivalent_focal_length else self.focal_length

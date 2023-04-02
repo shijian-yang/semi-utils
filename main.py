@@ -9,7 +9,7 @@ from image_processor import ImageProcessor, padding_image
 from utils import get_file_list, copy_exif_data
 
 id_to_name = {'Model': '相机机型', 'Make': '相机厂商', 'LensModel': '镜头型号', 'Param': '拍摄参数', 'Date': '拍摄时间',
-              'None': '无'}
+              'MakeModel': '机型+厂商', 'None': '无'}
 s_line = '+' + '-' * 15 + '+' + '-' * 15 + '+'
 id_to_loc = {'left_top': '左上文字', 'right_top': '右上文字', 'left_bottom': '左下文字', 'right_bottom': '右下文字'}
 
@@ -19,6 +19,10 @@ def parse_elem_value(element):
         return '自定义字段 (' + (element['value'] if 'value' in element else '') + ')'
     else:
         return id_to_name.setdefault(element['name'], '值错误')
+
+
+def parse_elem_value_lt(element):
+    return id_to_name.setdefault(element['name'][0] + element['name'][1], '值错误')
 
 
 def print_current_setting():
@@ -33,12 +37,13 @@ def print_current_setting():
     print(s_line)
     print(' 【1】: 布局：{}'.format(config['layout']['type']))
     print(' 【2】: Logo：{}'.format("显示" if config['logo']['enable'] else "不显示"))
-    print(' 【3】: 左上文字：{}'.format(parse_elem_value(config['layout']['elements']['left_top'])))
+    print(' 【3】: 左上文字：{}'.format(parse_elem_value_lt(config['layout']['elements']['left_top'])))
     print(' 【4】: 左下文字：{}'.format(parse_elem_value(config['layout']['elements']['left_bottom'])))
     print(' 【5】: 右上文字：{}'.format(parse_elem_value(config['layout']['elements']['right_top'])))
     print(' 【6】: 右下文字：{}'.format(parse_elem_value(config['layout']['elements']['right_bottom'])))
     print(' 【7】: 白色边框：{}'.format("显示" if config['layout']['white_margin']['enable'] else "不显示"))
-    print(' 【8】: 等效焦距：{}'.format("使用" if config['param']['focal_length']['use_equivalent_focal_length'] else "不使用"))
+    print(' 【8】: 等效焦距：{}'.format(
+        "使用" if config['param']['focal_length']['use_equivalent_focal_length'] else "不使用"))
     print(s_line)
     user_input = input('输入【y 或回车】按照当前设置开始处理图片，输入【数字】修改设置，输入【x】退出程序\n')
     if user_input == 'y' or user_input == '':
@@ -94,6 +99,7 @@ def processing():
     input()
     state = -1
 
+
 def modify_focal_length():
     global state
 
@@ -119,6 +125,7 @@ def modify_focal_length():
                 print('输入错误，请重新输入')
         else:
             print('输入错误，请重新输入')
+
 
 def modify_layout():
     """
