@@ -1,6 +1,6 @@
 import string
 from datetime import datetime
-
+from config import config
 from PIL import Image
 from PIL.Image import Transpose
 
@@ -30,7 +30,7 @@ class ImageContainer(object):
         self.focal_length_in_35mm_film = int(self.exif['FocalLengthIn35mmFilm']) \
             if 'FocalLengthIn35mmFilm' in self.exif else self.focal_length
         # 是否使用等效焦距
-        self.use_equivalent_focal_length = False
+        self.use_equivalent_focal_length = config['param']['focal_length']['use_equivalent_focal_length']
         # 光圈大小
         self.f_number = float(self.exif['FNumber']) if 'FNumber' in self.exif else .0
         # 曝光时间
@@ -67,7 +67,7 @@ class ImageContainer(object):
             date = datetime.strptime(self.date, '%Y:%m:%d %H:%M:%S')
             return datetime.strftime(date, '%Y-%m-%d %H:%M')
         except ValueError:
-            return '无'
+            return self.date
 
     def get_attribute_str(self, element):
         if element is None or element.name == '':
