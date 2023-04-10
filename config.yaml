@@ -1,6 +1,6 @@
 base:
   bold_font: ./fonts/AlibabaPuHuiTi-2-85-Bold.otf
-  font: ./fonts/AlibabaPuHuiTi-2-45-Light.otf
+  font: ./fonts/CHILLER.TTF
   input_dir: ./input
   output_dir: ./output
   quality: 100
@@ -8,16 +8,16 @@ layout:
   elements:
     left_bottom:
       is_bold: false
-      name: Date
+      name: Custom
+      value: Shot  by  Jimeri
     left_top:
       is_bold: true
       name:
       - Make
       - Model
     right_bottom:
-      is_bold: false
-      name: Custom
-      value: Photo by Jimeri
+      is_bold: true
+      name: Date
     right_top:
       is_bold: true
       name: Param
