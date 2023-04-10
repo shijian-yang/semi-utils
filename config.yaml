@@ -1,6 +1,6 @@
 base:
-  bold_font: ./fonts/SourceHanSansCN-Bold.otf
-  font: ./fonts/SourceHanSansCN-Light.otf
+  bold_font: ./fonts/AlibabaPuHuiTi-2-85-Bold.otf
+  font: ./fonts/AlibabaPuHuiTi-2-45-Light.otf
   input_dir: ./input
   output_dir: ./output
   quality: 100
@@ -12,18 +12,18 @@ layout:
     left_top:
       is_bold: true
       name:
-      - Model
       - Make
+      - Model
     right_bottom:
-      is_bold: true
+      is_bold: false
       name: Custom
-      value: Shot by Jimeri
+      value: Photo by Jimeri
     right_top:
       is_bold: true
       name: Param
   type: normal_with_right_logo
   white_margin:
-    enable: false
+    enable: true
     width: 3
 logo:
   enable: true
@@ -58,3 +58,6 @@ logo:
     sony:
       id: SONY
       path: ./logos/sony.png
+param:
+  focal_length:
+    use_equivalent_focal_length: true

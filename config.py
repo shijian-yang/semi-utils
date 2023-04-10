@@ -31,10 +31,6 @@ class Layout(object):
 
 # 布局，全局配置
 FONT_SIZE = 240
-BORDER_PIXEL = 60
-UP_DOWN_MARGIN = FONT_SIZE + BORDER_PIXEL
-LEFT_RIGHT_MARGIN = FONT_SIZE + BORDER_PIXEL
-GAP_PIXEL = 90
 
 
 def save_config():
@@ -64,7 +60,6 @@ def get_logo(make):
 
 
 # 读取配置
-global config
 with open('config.yaml', 'r', encoding='utf-8') as f:
     config = yaml.safe_load(f)
 

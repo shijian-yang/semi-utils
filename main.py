@@ -1,16 +1,28 @@
 import os
+
 from tqdm import tqdm
-from config import Layout, input_dir, config, font, bold_font, get_logo, white_margin_enable, white_margin_width, \
+
+from config import Layout, input_dir, config, font, bold_font, get_logo, white_margin_width, \
     output_dir, quality, logo_enable, save_config, load_config
 from image_container import ImageContainer
 from image_processor import ImageProcessor, padding_image
-from utils import get_file_list
+from utils import get_file_list, copy_exif_data
 
-id_to_name = {'Model': '相机机型', 'Make': '相机厂商', 'LensModel': '镜头型号', 'Custom': '自定义字段',
-              'Param': '拍摄参数',
-              'Date': '拍摄时间', 'None': '无'}
+id_to_name = {'Model': '相机机型', 'Make': '相机厂商', 'LensModel': '镜头型号', 'Param': '拍摄参数', 'Date': '拍摄时间',
+              'MakeModel': '机型+厂商', 'None': '无'}
 s_line = '+' + '-' * 15 + '+' + '-' * 15 + '+'
 id_to_loc = {'left_top': '左上文字', 'right_top': '右上文字', 'left_bottom': '左下文字', 'right_bottom': '右下文字'}
+
+
+def parse_elem_value(element):
+    if element['name'] == 'Custom':
+        return '自定义字段 (' + (element['value'] if 'value' in element else '') + ')'
+    else:
+        return id_to_name.setdefault(element['name'], '值错误')
+
+
+def parse_elem_value_lt(element):
+    return id_to_name.setdefault(element['name'][0] + element['name'][1], '值错误')
 
 
 def print_current_setting():
@@ -24,22 +36,14 @@ def print_current_setting():
     print(' ' * 8 + '当前设置')
     print(s_line)
     print(' 【1】: 布局：{}'.format(config['layout']['type']))
-    print(' 【2】: Logo：{}'.format(config['logo']['enable']))
-    if len(config['layout']['elements']['left_top']['name']) == 2:
-        print(' 【3】: 左上文字：{}+{}'.format(id_to_name.setdefault(config['layout']['elements']['left_top']['name'][0]),
-                                            id_to_name.setdefault(config['layout']['elements']['left_top']['name'][1]),
-                                            '值错误'))
-    else:
-        print(' 【3】: 左上文字：{}+{}'.format(id_to_name.setdefault(config['layout']['elements']['left_top']['name']),
-                                            '值错误'))
-    print(
-        ' 【4】: 左下文字：{}'.format(id_to_name.setdefault(config['layout']['elements']['left_bottom']['name']),
-                                   '值错误'))
-    print(
-        ' 【5】: 右上文字：{}'.format(id_to_name.setdefault(config['layout']['elements']['right_top']['name']), '值错误'))
-    print(
-        ' 【6】: 右下文字：{}'.format(id_to_name.setdefault(config['layout']['elements']['right_bottom']['name']),
-                                   '值错误'))
+    print(' 【2】: Logo：{}'.format("显示" if config['logo']['enable'] else "不显示"))
+    print(' 【3】: 左上文字：{}'.format(parse_elem_value_lt(config['layout']['elements']['left_top'])))
+    print(' 【4】: 左下文字：{}'.format(parse_elem_value(config['layout']['elements']['left_bottom'])))
+    print(' 【5】: 右上文字：{}'.format(parse_elem_value(config['layout']['elements']['right_top'])))
+    print(' 【6】: 右下文字：{}'.format(parse_elem_value(config['layout']['elements']['right_bottom'])))
+    print(' 【7】: 白色边框：{}'.format("显示" if config['layout']['white_margin']['enable'] else "不显示"))
+    print(' 【8】: 等效焦距：{}'.format(
+        "使用" if config['param']['focal_length']['use_equivalent_focal_length'] else "不使用"))
     print(s_line)
     user_input = input('输入【y 或回车】按照当前设置开始处理图片，输入【数字】修改设置，输入【x】退出程序\n')
     if user_input == 'y' or user_input == '':
@@ -62,8 +66,9 @@ def processing():
     print('当前共有 {} 张图片待处理'.format(len(file_list)))
     processor = ImageProcessor(font, bold_font)
     for file in tqdm(file_list):
+        source_path = os.path.join(input_dir, file)
         # 打开图片
-        container = ImageContainer(os.path.join(input_dir, file))
+        container = ImageContainer(source_path)
 
         # 添加logo
         if logo_enable:
@@ -80,16 +85,46 @@ def processing():
             watermark = processor.normal_watermark(container, layout)
 
         # 添加白框
-        if white_margin_enable:
-            watermark = padding_image(watermark, int(white_margin_width * container.width / 100), 'tlr')
+        if config['layout']['white_margin']['enable']:
+            watermark = padding_image(watermark, int(white_margin_width * min(container.width, container.height) / 100),
+                                      'tlr')
 
         # 保存图片
-        watermark.save(os.path.join(output_dir, file), quality=quality)
+        target_path = os.path.join(output_dir, file)
+        watermark.save(target_path, quality=quality)
         container.close()
         watermark.close()
+        copy_exif_data(source_path, target_path)
     print('处理完成，文件已输出至 output 文件夹中，请点击任意键退出或直接关闭'.format(len(file_list)))
     input()
     state = -1
+
+
+def modify_focal_length():
+    global state
+
+    while True:
+        print('输入【数字】选择是否使用等效焦距：')
+        print('    【1】: 使用等效焦距')
+        print('    【2】: 不使用等效焦距')
+        print('输入【0】返回主菜单')
+        print('输入【x】退出程序')
+        user_input = input()
+        if user_input == 'x' or user_input == 'X':
+            exit(0)
+        if user_input.isdigit():
+            if user_input == '0':
+                return
+            elif user_input == '1':
+                config['param']['focal_length']['use_equivalent_focal_length'] = True
+                return
+            elif user_input == '2':
+                config['param']['focal_length']['use_equivalent_focal_length'] = False
+                return
+            else:
+                print('输入错误，请重新输入')
+        else:
+            print('输入错误，请重新输入')
 
 
 def modify_layout():
@@ -158,6 +193,37 @@ def modify_logo():
             print('输入错误，请重新输入')
 
 
+def modify_white_margin():
+    """
+    状态4：修改 margin
+    :return:
+    """
+    global state
+
+    while True:
+        print('输入【数字】选择是否显示白色边框：')
+        print('    【1】: 显示白色边框')
+        print('    【2】: 不显示白色边框')
+        print('输入【0】返回主菜单')
+        print('输入【x】退出程序')
+        user_input = input()
+        if user_input == 'x' or user_input == 'X':
+            exit(0)
+        if user_input.isdigit():
+            if user_input == '0':
+                return
+            elif user_input == '1':
+                config['layout']['white_margin']['enable'] = True
+                return
+            elif user_input == '2':
+                config['layout']['white_margin']['enable'] = False
+                return
+            else:
+                print('输入错误，请重新输入')
+        else:
+            print('输入错误，请重新输入')
+
+
 def modify_element(key):
     """
     状态4-7：修改 logo
@@ -212,8 +278,9 @@ def modify_element(key):
             print('输入错误，请重新输入')
 
 
+state = 0
+
 if __name__ == '__main__':
-    state = 0
 
     while True:
         if state == 0:
@@ -223,7 +290,6 @@ if __name__ == '__main__':
             print(s_line)
             load_config()
             processing()
-            save_config()
         elif state == 1:
             modify_layout()
             # 修改布局类型的代码
@@ -248,8 +314,16 @@ if __name__ == '__main__':
             modify_element('right_bottom')
             # 修改右下文字的代码
             state = 0
+        elif state == 7:
+            modify_white_margin()
+            # 修改右下文字的代码
+            state = 0
+        elif state == 8:
+            modify_focal_length()
+            state = 0
         elif state == -1:
             exit(0)
         else:
             print("输入错误，请重新输入")
             state = 0
+        save_config()
