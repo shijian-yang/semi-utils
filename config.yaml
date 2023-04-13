@@ -1,6 +1,6 @@
 base:
-  bold_font: ./fonts/AlibabaPuHuiTi-2-85-Bold.otf
-  font: ./fonts/CHILLER.TTF
+  bold_font: ./fonts/segoeprb.ttf
+  font: ./fonts/segoescb.ttf
   input_dir: ./input
   output_dir: ./output
   quality: 100
