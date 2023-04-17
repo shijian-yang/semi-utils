@@ -1,5 +1,5 @@
 from datetime import datetime
-from config import config
+
 from PIL import Image
 from PIL.Image import Transpose
 
@@ -7,9 +7,9 @@ from utils import get_exif
 
 
 class ImageContainer(object):
-    def __init__(self, path):
+    def __init__(self, path: Path):
         self.img = Image.open(path)
-        self.exif = get_exif(self.img)
+        self.exif = get_exif(path)
 
         # 相机机型
         self.model = self.exif['Model'] if 'Model' in self.exif else '无'
@@ -27,7 +27,7 @@ class ImageContainer(object):
         self.focal_length_in_35mm_film = int(self.exif['FocalLengthIn35mmFilm']) \
             if 'FocalLengthIn35mmFilm' in self.exif else self.focal_length
         # 是否使用等效焦距
-        self.use_equivalent_focal_length = config['param']['focal_length']['use_equivalent_focal_length']
+        self.use_equivalent_focal_length = False
         # 光圈大小
         self.f_number = float(self.exif['FNumber']) if 'FNumber' in self.exif else .0
         # 曝光时间
@@ -65,7 +65,8 @@ class ImageContainer(object):
         :return: 指定格式的日期字符串，转换失败返回原始的时间字符串
         """
         try:
-            date = datetime.strptime(self.date, '%Y:%m:%d %H:%M:%S')
+            date = ''.join(filter(lambda x: x.isprintable(), self.date))
+            date = datetime.strptime(date, '%Y:%m:%d %H:%M:%S')
             return datetime.strftime(date, '%Y-%m-%d %H:%M')
         except ValueError:
             return self.date

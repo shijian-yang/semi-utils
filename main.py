@@ -7,6 +7,7 @@ from config import Layout, input_dir, config, font, bold_font, get_logo, white_m
 from image_container import ImageContainer
 from image_processor import ImageProcessor, padding_image
 from utils import get_file_list, copy_exif_data
+import sys
 
 id_to_name = {'Model': '相机机型', 'Make': '相机厂商', 'LensModel': '镜头型号', 'Param': '拍摄参数', 'Date': '拍摄时间',
               'MakeModel': '机型+厂商', 'None': '无'}
@@ -21,8 +22,11 @@ def parse_elem_value(element):
         return id_to_name.setdefault(element['name'], '值错误')
 
 
-def parse_elem_value_lt(element):
-    return id_to_name.setdefault(element['name'][0] + element['name'][1], '值错误')
+def select_setting():
+    if 'normal' in config['layout']['type']:
+        return NORMAL_SETTING
+    else:
+        return SQUARE_SETTING
 
 
 def print_current_setting():
@@ -37,21 +41,104 @@ def print_current_setting():
     print(s_line)
     print(' 【1】: 布局：{}'.format(config['layout']['type']))
     print(' 【2】: Logo：{}'.format("显示" if config['logo']['enable'] else "不显示"))
-    print(' 【3】: 左上文字：{}'.format(parse_elem_value_lt(config['layout']['elements']['left_top'])))
+    print(' 【3】: 左上文字：{}'.format(parse_elem_value(config['layout']['elements']['left_top'])))
     print(' 【4】: 左下文字：{}'.format(parse_elem_value(config['layout']['elements']['left_bottom'])))
     print(' 【5】: 右上文字：{}'.format(parse_elem_value(config['layout']['elements']['right_top'])))
     print(' 【6】: 右下文字：{}'.format(parse_elem_value(config['layout']['elements']['right_bottom'])))
     print(' 【7】: 白色边框：{}'.format("显示" if config['layout']['white_margin']['enable'] else "不显示"))
-    print(' 【8】: 等效焦距：{}'.format(
-        "使用" if config['param']['focal_length']['use_equivalent_focal_length'] else "不使用"))
+    print(' 【8】: 等效焦距：{}'.format("使用" if config['param']['focal_length']['use_equivalent_focal_length'] else "不使用"))
     print(s_line)
     user_input = input('输入【y 或回车】按照当前设置开始处理图片，输入【数字】修改设置，输入【x】退出程序\n')
     if user_input == 'y' or user_input == '':
         state = 100
     elif user_input == 'x' or user_input == 'X':
-        exit(0)
+        sys.exit(0)
     elif user_input.isdigit():
         state = int(user_input)
+
+
+class SettingItem(object):
+    def __init__(self, name: str):
+        self.name = name
+
+    def get(self):
+        return self.name
+
+    def display(self) -> str:
+        return ': '.join([self.name, self.get()])
+
+
+class Pointer(object):
+    def __init__(self, obj):
+        self._container = []
+        self._container.append(obj)
+
+    def get(self):
+        return self._container[0]
+
+
+class NormalSettingItem(SettingItem):
+    def __init__(self, name: str, source: Pointer, keys: list):
+        super().__init__(name)
+        self.source = source
+        self.keys = keys
+
+    def get(self) -> str:
+        value = self.source.get()
+        for key in self.keys:
+            value = value[key]
+        return parse_elem_value(value)
+
+
+class PureSettingItem(NormalSettingItem):
+    def __init__(self, name: str, source: Pointer, keys: list):
+        super().__init__(name, source, keys)
+
+    def get(self) -> str:
+        value = self.source.get()
+        for key in self.keys:
+            value = value[key]
+        return value
+
+
+class BooleanSettingItem(SettingItem):
+    def __init__(self, name: str, value_if_true: str, value_if_false: str, source: Pointer, keys: list):
+        super().__init__(name)
+        self.value_if_true = value_if_true
+        self.value_if_false = value_if_false
+        self.source = source
+        self.keys = keys
+
+    def get(self) -> str:
+        value = self.source.get()
+        for key in self.keys:
+            value = value[key]
+        return self.value_if_true if value else self.value_if_false
+
+
+config_pointer = Pointer(config)
+layout_setting_item = PureSettingItem('布局', config_pointer, ['layout', 'type'])
+logo_setting_item = BooleanSettingItem('logo', '显示', '不显示', config_pointer, ['logo', 'enable'])
+left_top_setting_item = NormalSettingItem('左上角', config_pointer, ['layout', 'elements', 'left_top'])
+left_bottom_setting_item = NormalSettingItem('左下角', config_pointer, ['layout', 'elements', 'left_bottom'])
+right_top_setting_item = NormalSettingItem('右上角', config_pointer, ['layout', 'elements', 'right_top'])
+right_bottom_setting_item = NormalSettingItem('右下角', config_pointer, ['layout', 'elements', 'right_bottom'])
+white_margin_setting_item = BooleanSettingItem('白色边框', '显示', '不显示', config_pointer,
+                                               ['layout', 'white_margin', 'enable'])
+equivalent_focal_length_setting_item = BooleanSettingItem('等效焦距', '使用', '不使用', config_pointer,
+                                                          ['param', 'focal_length', 'use_equivalent_focal_length'])
+NORMAL_SETTING = []
+NORMAL_SETTING.append(layout_setting_item)
+NORMAL_SETTING.append(logo_setting_item)
+NORMAL_SETTING.append(left_top_setting_item)
+NORMAL_SETTING.append(left_bottom_setting_item)
+NORMAL_SETTING.append(right_top_setting_item)
+NORMAL_SETTING.append(right_bottom_setting_item)
+NORMAL_SETTING.append(white_margin_setting_item)
+NORMAL_SETTING.append(equivalent_focal_length_setting_item)
+
+SQUARE_SETTING = []
+SQUARE_SETTING.append(layout_setting_item)
 
 
 def processing():
@@ -65,8 +152,7 @@ def processing():
     layout = Layout(config['layout'])
     print('当前共有 {} 张图片待处理'.format(len(file_list)))
     processor = ImageProcessor(font, bold_font)
-    for file in tqdm(file_list):
-        source_path = os.path.join(input_dir, file)
+    for source_path in tqdm(file_list):
         # 打开图片
         container = ImageContainer(source_path)
 
@@ -93,7 +179,7 @@ def processing():
                                       'tlr')
 
         # 保存图片
-        target_path = os.path.join(output_dir, file)
+        target_path = Path(output_dir).joinpath(source_path.name)
         watermark.save(target_path, quality=quality)
         container.close()
         watermark.close()
@@ -114,7 +200,7 @@ def modify_focal_length():
         print('输入【x】退出程序')
         user_input = input()
         if user_input == 'x' or user_input == 'X':
-            exit(0)
+            sys.exit(0)
         if user_input.isdigit():
             if user_input == '0':
                 return
@@ -146,7 +232,7 @@ def modify_layout():
         print('输入【x】退出程序')
         user_input = input()
         if user_input == 'x' or user_input == 'X':
-            exit(0)
+            sys.exit(0)
         if user_input.isdigit():
             if user_input == '0':
                 return
@@ -180,7 +266,7 @@ def modify_logo():
         print('输入【x】退出程序')
         user_input = input()
         if user_input == 'x' or user_input == 'X':
-            exit(0)
+            sys.exit(0)
         if user_input.isdigit():
             if user_input == '0':
                 return
@@ -211,7 +297,7 @@ def modify_white_margin():
         print('输入【x】退出程序')
         user_input = input()
         if user_input == 'x' or user_input == 'X':
-            exit(0)
+            sys.exit(0)
         if user_input.isdigit():
             if user_input == '0':
                 return
@@ -247,7 +333,7 @@ def modify_element(key):
         print('输入【x】退出程序')
         user_input = input()
         if user_input == 'x' or user_input == 'X':
-            exit(0)
+            sys.exit(0)
         if user_input.isdigit():
             number = int(user_input)
             if number == 0:
@@ -325,7 +411,7 @@ if __name__ == '__main__':
             modify_focal_length()
             state = 0
         elif state == -1:
-            exit(0)
+            sys.exit(0)
         else:
             print("输入错误，请重新输入")
             state = 0
