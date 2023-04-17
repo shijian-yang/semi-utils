@@ -13,8 +13,8 @@ layout:
     left_top:
       is_bold: true
       name:
-      - Make
       - Model
+      - LensModel
     right_bottom:
       is_bold: true
       name: Date

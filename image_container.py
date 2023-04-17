@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 
 from PIL import Image
 from PIL.Image import Transpose
@@ -81,23 +82,28 @@ class ImageContainer(object):
             return ''
         # default make+model
         if len(element.name) == 2:
-            return self.make + '  ' + self.model
+            return self.model + '---' + self.lens_model
         else:
-            if element.name == 'Model':
-                return self.model
-            elif element.name == 'Param':
-                return self.get_param_str()
-            elif element.name == 'Make':
-                return self.make
-            elif element.name == 'Date':
-                return self._parse_datetime()
-            elif element.name == 'LensModel':
-                return self.lens_model
-            elif element.name == 'Custom':
-                self.custom = element.value
-                return self.custom
-            else:
-                return ''
+            return self.getExifValuebyName(element)
+
+    def getExifValuebyName(self, element) -> str:
+        if len(element.name) == 2:
+            return self.model+'---' + self.lens_model
+        elif element.name == 'Model':
+            return self.model
+        elif element.name == 'Param':
+            return self.get_param_str()
+        elif element.name == 'Make':
+            return self.make
+        elif element.name == 'Date':
+            return self._parse_datetime()
+        elif element.name == 'LensModel':
+            return self.lens_model
+        elif element.name == 'Custom':
+            self.custom = element.value
+            return self.custom
+        else:
+            return ''
 
     def get_param_str(self) -> str:
         """
