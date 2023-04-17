@@ -81,14 +81,11 @@ class ImageContainer(object):
         if element is None or element.name == '':
             return ''
         # default make+model
-        if len(element.name) == 2:
-            return self.model + '---' + self.lens_model
-        else:
-            return self.getExifValuebyName(element)
+        return self.getExifValuebyName(element)
 
     def getExifValuebyName(self, element) -> str:
         if len(element.name) == 2:
-            return self.model+'---' + self.lens_model
+            return self.model+' --- Shot by  Jimeri'
         elif element.name == 'Model':
             return self.model
         elif element.name == 'Param':

@@ -11,7 +11,7 @@ from utils import get_file_list, copy_exif_data
 import sys
 
 id_to_name = {'Model': '相机机型', 'Make': '相机厂商', 'LensModel': '镜头型号', 'Param': '拍摄参数', 'Date': '拍摄时间',
-              'ModelLen': '机型+厂商', 'None': '无', 'TimeAuthor': '时间+拍摄人'}
+              'ModelLen': '机型+拍摄人', 'None': '无', 'TimeAuthor': '时间+拍摄人'}
 s_line = '+' + '-' * 15 + '+' + '-' * 15 + '+'
 id_to_loc = {'left_top': '左上文字', 'right_top': '右上文字', 'left_bottom': '左下文字', 'right_bottom': '右下文字'}
 

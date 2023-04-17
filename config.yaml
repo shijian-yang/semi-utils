@@ -7,9 +7,8 @@ base:
 layout:
   elements:
     left_bottom:
-      is_bold: false
-      name: Custom
-      value: Shot  by  Jimeri
+      is_bold: true
+      name: LensModel
     left_top:
       is_bold: true
       name:
