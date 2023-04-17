@@ -1,6 +1,7 @@
 import os
 
 from tqdm import tqdm
+from pathlib import Path
 
 from config import Layout, input_dir, config, font, bold_font, get_logo, white_margin_width, \
     output_dir, quality, logo_enable, save_config, load_config
@@ -10,7 +11,7 @@ from utils import get_file_list, copy_exif_data
 import sys
 
 id_to_name = {'Model': '相机机型', 'Make': '相机厂商', 'LensModel': '镜头型号', 'Param': '拍摄参数', 'Date': '拍摄时间',
-              'MakeModel': '机型+厂商', 'None': '无'}
+              'ModelLen': '机型+厂商', 'None': '无', 'TimeAuthor': '时间+拍摄人'}
 s_line = '+' + '-' * 15 + '+' + '-' * 15 + '+'
 id_to_loc = {'left_top': '左上文字', 'right_top': '右上文字', 'left_bottom': '左下文字', 'right_bottom': '右下文字'}
 
@@ -18,6 +19,8 @@ id_to_loc = {'left_top': '左上文字', 'right_top': '右上文字', 'left_bott
 def parse_elem_value(element):
     if element['name'] == 'Custom':
         return '自定义字段 (' + (element['value'] if 'value' in element else '') + ')'
+    elif len(element['name']) == 2:
+        return id_to_name.setdefault('ModelLen', '值错误')
     else:
         return id_to_name.setdefault(element['name'], '值错误')
 
