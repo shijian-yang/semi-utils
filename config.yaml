@@ -1,9 +1,16 @@
 base:
+  alternative_bold_font: ./fonts/Roboto-Medium.ttf
+  alternative_font: ./fonts/Roboto-Regular.ttf
   bold_font: ./fonts/segoeprb.ttf
+  bold_font_size: 1
   font: ./fonts/segoescb.ttf
+  font_size: 1
   input_dir: ./input
   output_dir: ./output
   quality: 100
+global:
+  shadow:
+    enable: false
 layout:
   elements:
     left_bottom:
@@ -36,6 +43,9 @@ logo:
     hasselblad:
       id: HASSELBLAD
       path: ./logos/hasselblad.png
+    huawei:
+      id: HUAWEI
+      path: ./logos/xmage.jpg
     leica:
       id: leica
       path: ./logos/leica_logo.png
@@ -57,6 +67,11 @@ logo:
     sony:
       id: SONY
       path: ./logos/sony.png
+  position: right
 param:
   focal_length:
     use_equivalent_focal_length: true
+setting:
+  copyright:
+    content: null
+    location: null
